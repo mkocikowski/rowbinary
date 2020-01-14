@@ -32,24 +32,58 @@ func TestColumnsError(t *testing.T) {
 	}
 }
 
-func TestMarshalString(t *testing.T) {
+func TestMarshalValue(t *testing.T) {
 	tests := []struct {
-		s string
-		b []byte
+		v    interface{}
+		want []byte
 	}{
-		{s: "", b: []byte{0}},
-		{s: "foo", b: []byte{0x3, 0x66, 0x6f, 0x6f}},
+		{v: "", want: []byte{0}},
+		{v: "foo", want: []byte{3, 102, 111, 111}},
+		{v: []byte("foo"), want: []byte{102, 111, 111}},
+		{v: uint16(1), want: []byte{1, 0}},
 	}
 	for _, tt := range tests {
 		buf := new(bytes.Buffer)
-		_, err := MarshalString(buf, tt.s)
-		if err != nil {
+		if err := marshalValue(buf, reflect.ValueOf(tt.v)); err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(buf.Bytes(), tt.b) {
+		if !bytes.Equal(buf.Bytes(), tt.want) {
 			t.Fatal(buf.Bytes())
 		}
 	}
+}
+
+func TestMarshalValueError(t *testing.T) {
+	i := uint32(1)
+	b := []byte{1}
+	tests := []struct {
+		v       interface{}
+		wantErr bool
+	}{
+		{v: i, wantErr: false},
+		{v: &i, wantErr: true},
+		{v: b, wantErr: false},
+		{v: &b, wantErr: true},
+		{v: []int16{1}, wantErr: true},
+		{v: float64(1), wantErr: true},
+	}
+	for _, tt := range tests {
+		buf := new(bytes.Buffer)
+		err := marshalValue(buf, reflect.ValueOf(tt.v))
+		if (err != nil) != tt.wantErr {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestMarshalValueNil(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("expected panic")
+		}
+	}()
+	buf := new(bytes.Buffer)
+	marshalValue(buf, reflect.ValueOf(nil))
 }
 
 func TestMarshal(t *testing.T) {

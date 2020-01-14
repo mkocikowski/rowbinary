@@ -2,7 +2,6 @@ package rowbinary
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"io"
 	"reflect"
@@ -54,8 +53,7 @@ func Marshal(buf io.Writer, structPtr interface{}) error {
 	return nil
 }
 
-var TypeNotSupported = errors.New("type not supported")
-
+// panics if v == nil
 func marshalValue(buf io.Writer, v reflect.Value) error {
 	switch v.Kind() {
 	case reflect.String:
@@ -76,7 +74,7 @@ func marshalValue(buf io.Writer, v reflect.Value) error {
 	case reflect.Uint64:
 		return binary.Write(buf, binary.LittleEndian, uint64(v.Uint()))
 	}
-	return TypeNotSupported
+	return fmt.Errorf("value type %s not supported", v.Type())
 }
 
 func MarshalString(buf io.Writer, s string) (int, error) {
