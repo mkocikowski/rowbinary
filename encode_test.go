@@ -2,6 +2,7 @@ package rowbinary
 
 import (
 	"bytes"
+	"math"
 	"reflect"
 	"testing"
 )
@@ -38,7 +39,7 @@ func TestMarshalValue(t *testing.T) {
 		want []byte
 	}{
 		{v: "", want: []byte{0}},
-		{v: "foo", want: []byte{3, 102, 111, 111}},
+		{v: "foo", want: []byte{0x3, 0x66, 0x6f, 0x6f}},
 		{v: []byte("foo"), want: []byte{102, 111, 111}},
 		{v: uint16(1), want: []byte{1, 0}},
 	}
@@ -94,6 +95,20 @@ func TestMarshal(t *testing.T) {
 	}
 	if !bytes.Equal(buf.Bytes(), []byte{0xff, 0x0}) {
 		t.Fatal(buf.Bytes())
+	}
+}
+
+func TestMarshalErrors(t *testing.T) {
+	// TODO
+}
+
+func TestUleb128(t *testing.T) {
+	for _, i := range []uint64{0, 1, math.MaxUint32, math.MaxUint32 + 1, math.MaxUint64} {
+		b := appendUleb128(nil, i)
+		j, _ := readUleb128(bytes.NewReader(b))
+		if j != i {
+			t.Fatal(i, j)
+		}
 	}
 }
 

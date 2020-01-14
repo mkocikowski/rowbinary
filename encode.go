@@ -47,7 +47,7 @@ func Marshal(buf io.Writer, structPtr interface{}) error {
 	typ := val.Type()
 	for _, i := range fieldIndexes(typ) {
 		if err := marshalValue(buf, val.Field(i)); err != nil {
-			return fmt.Errorf("field %q error: %v", typ.Field(i).Name, err)
+			return fmt.Errorf("marshal field %q error: %v", typ.Field(i).Name, err)
 		}
 	}
 	return nil
@@ -101,4 +101,21 @@ func appendUleb128(b []byte, v uint64) []byte {
 		}
 	}
 	return b
+}
+
+// https://en.wikipedia.org/w/index.php?title=LEB128&section=7#Decode_unsigned_integer
+func readUleb128(r io.ByteReader) (uint64, error) {
+	var result, shift uint64
+	for {
+		b, err := r.ReadByte()
+		if err != nil {
+			return result, err
+		}
+		result |= uint64(b&0x7f) << shift
+		if b&0x80 == 0 {
+			break
+		}
+		shift += 7
+	}
+	return result, nil
 }
