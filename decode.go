@@ -56,8 +56,38 @@ func UnmarshalString(r io.Reader) (string, error) {
 	return string(b), nil
 }
 
+func UnmarshalUint8(r io.Reader) (uint8, error) {
+	var i uint8
+	err := binary.Read(r, binary.LittleEndian, &i)
+	return i, err
+}
+
+func UnmarshalUint16(r io.Reader) (uint16, error) {
+	var i uint16
+	err := binary.Read(r, binary.LittleEndian, &i)
+	return i, err
+}
+
+func UnmarshalUint32(r io.Reader) (uint32, error) {
+	var i uint32
+	err := binary.Read(r, binary.LittleEndian, &i)
+	return i, err
+}
+
 func UnmarshalUint64(r io.Reader) (uint64, error) {
 	var i uint64
+	err := binary.Read(r, binary.LittleEndian, &i)
+	return i, err
+}
+
+func UnmarshalFloat32(r io.Reader) (float32, error) {
+	var i float32
+	err := binary.Read(r, binary.LittleEndian, &i)
+	return i, err
+}
+
+func UnmarshalFloat64(r io.Reader) (float64, error) {
+	var i float64
 	err := binary.Read(r, binary.LittleEndian, &i)
 	return i, err
 }
